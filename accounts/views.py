@@ -1,10 +1,13 @@
 from django.shortcuts import render, redirect
 from django.views import View
-from .forms import UserRegistrationForm, VerifyCodeForm
+from .forms import UserRegistrationForm, VerifyCodeForm, UserLoginForm
 from .utils import send_otp_code
 from .models import OtpCode, User
 from django.contrib import messages
 import random
+from django.contrib.auth.mixins import LoginRequiredMixin
+from django.contrib.auth import authenticate, login, logout
+
 
 
 class UserRegisterView(View):
@@ -45,6 +48,7 @@ class UserRegisterVerifyCodeView(View):
         form = self.form_class(request.POST)
         if form.is_valid():
             cd = form.cleaned_data
+
             if cd['code'] == code_instance.code:
                 User.objects.create_user(user_session['phone'], user_session['email'],
                                          user_session['full_name'], user_session['password'])
@@ -54,5 +58,39 @@ class UserRegisterVerifyCodeView(View):
             else:
                 messages.error(request, 'Code Is Wrong', 'danger')
                 return redirect('accounts:verify_code')
+        return redirect('home:home')
+
+
+class UserLoginView(View):
+    form_class = UserLoginForm
+    temp_name = 'accounts/login.html'
+
+    def setup(self, request, *args, **kwargs):
+        self.next = request.GET.get('next')
+        super().setup(self, request, *args, **kwargs)
+
+    def get(self, request):
+        form = self.form_class()
+        return render(request, self.temp_name, {'form': form})
+
+    def post(self, request):
+        form = self.form_class(request.POST)
+        if form.is_valid():
+            cd = form.cleaned_data
+            user = authenticate(request, phone_number=cd['phone'], password=cd['password'])
+            if user:
+                login(request, user)
+                messages.success(request, 'Logged in Successfully !', 'success')
+                if self.next:
+                    return redirect(self.next)
+                return redirect('home:home')
+            messages.error(request, 'Username OR Password IS Wrong!', 'danger')
+        return render(request, self.temp_name, {'form': form})
+
+
+class UserLogoutView(LoginRequiredMixin, View):
+    def get(self, request):
+        logout(request)
+        messages.success(request, 'Logged out Successfully', 'success')
         return redirect('home:home')
 
