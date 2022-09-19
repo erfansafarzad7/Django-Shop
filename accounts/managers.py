@@ -23,4 +23,3 @@ class UserManager(BaseUserManager):
         user.save(using=self.db)
         return user
 
-
