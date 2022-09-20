@@ -27,6 +27,15 @@ class BucketHoneView(View):
 class DeleteBucketView(View):
     def get(self, request, key):
         tasks.delete_obj_task(key)
+        # tasks.delete_obj_task.delay(key)
         messages.success(request, 'Your Object Will Be Delete Soon', 'info')
+        return redirect('home:bucket')
+
+
+class DownloadBucketView(View):
+    def get(self, request, key):
+        tasks.download_object_task(key)
+        # tasks.download_object_task.delay(key)
+        messages.success(request, 'Your Object Will Be Download Soon', 'info')
         return redirect('home:bucket')
 
