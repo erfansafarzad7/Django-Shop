@@ -8,6 +8,9 @@
     <a class="nav-link" href="{% url 'accounts:user_register' %}">Register</a>
     <a class="nav-link" href="{% url 'accounts:user_login' %}">Login</a>
     {% endif %}
+    {% if request.user.is_admin %}
+    <a class="nav-link" href="{% url 'home:bucket' %}">Buckets</a>
+    {% endif %}
     </div>
   </div>
 </nav>
